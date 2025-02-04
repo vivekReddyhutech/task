@@ -38,10 +38,8 @@ const SchemaTable = ({
 }: SchemaTableProps) => {
   return (
     <Card
-      className="absolute bg-white shadow-lg"
+      className="bg-white shadow-lg select-none"
       style={{
-        left: position.x,
-        top: position.y,
         width: "280px",
         minHeight: "200px",
       }}
@@ -69,8 +67,33 @@ const SchemaTable = ({
             key={index}
             className="flex items-center gap-2 p-2 hover:bg-slate-50 rounded-md cursor-pointer"
             draggable
-            onDragStart={(e) => onColumnDragStart?.(column.name, e)}
-            onDragEnd={(e) => onColumnDragEnd?.(column.name, e)}
+            onDragStart={(e) => {
+              e.stopPropagation();
+              const rect = e.currentTarget.getBoundingClientRect();
+              const yOffset = e.clientY - rect.top;
+              e.dataTransfer.setData(
+                "columnData",
+                JSON.stringify({
+                  tableId: tableName,
+                  columnName: column.name,
+                  yOffset,
+                }),
+              );
+              onColumnDragStart?.(column.name, e);
+            }}
+            onDragOver={(e) => {
+              e.preventDefault();
+              e.currentTarget.classList.add("bg-blue-100");
+            }}
+            onDragLeave={(e) => {
+              e.currentTarget.classList.remove("bg-blue-100");
+            }}
+            onDrop={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              e.currentTarget.classList.remove("bg-blue-100");
+              onColumnDragEnd?.(column.name, e);
+            }}
           >
             <div className="flex-1 flex items-center gap-2">
               <span className="text-sm font-medium">{column.name}</span>
