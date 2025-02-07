@@ -7,6 +7,8 @@ interface TablePosition {
   id: string;
   x: number;
   y: number;
+  width?: number;
+  height?: number;
 }
 
 interface Relationship {
@@ -275,6 +277,15 @@ const DesignerCanvas = ({
               <SchemaTable
                 tableName={table.name}
                 columns={table.columns}
+                width={position.width}
+                height={position.height}
+                onResize={(size) => {
+                  setTablePositions((prev) =>
+                    prev.map((p) =>
+                      p.id === table.id ? { ...p, ...size } : p,
+                    ),
+                  );
+                }}
                 onColumnDragStart={(columnName, e) =>
                   handleColumnDragStart(table.id, columnName, e)
                 }

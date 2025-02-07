@@ -4,6 +4,8 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Grip, X, Plus } from "lucide-react";
+import { ResizableBox } from "react-resizable";
+import "react-resizable/css/styles.css";
 
 interface Column {
   name: string;
@@ -20,6 +22,8 @@ interface SchemaTableProps {
   onColumnDragStart?: (columnName: string, e: React.DragEvent) => void;
   onColumnDragEnd?: (columnName: string, e: React.DragEvent) => void;
   onRemove?: () => void;
+  width?: number;
+  height?: number;
 }
 
 const SchemaTable = ({
@@ -35,100 +39,109 @@ const SchemaTable = ({
   onColumnDragStart,
   onColumnDragEnd,
   onRemove = () => {},
+  width = 280,
+  height = 200,
 }: SchemaTableProps) => {
   return (
-    <Card
-      className="bg-white shadow-lg select-none"
-      style={{
-        width: "280px",
-        minHeight: "200px",
+    <ResizableBox
+      width={width}
+      height={height}
+      minConstraints={[200, 150]}
+      maxConstraints={[500, 800]}
+      onResize={(e, { size }) => {
+        e.stopPropagation();
+        onResize?.(size);
       }}
+      resizeHandles={["se"]}
+      handle={<div className="react-resizable-handle" />}
     >
-      {/* Table Header */}
-      <div className="p-4 border-b bg-slate-50 cursor-move flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Grip className="h-4 w-4 text-slate-500" />
-          <Input value={tableName} className="h-7 w-[160px] font-medium" />
-        </div>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-7 w-7"
-          onClick={onRemove}
-        >
-          <X className="h-4 w-4" />
-        </Button>
-      </div>
-
-      {/* Columns List */}
-      <div className="p-2 space-y-1">
-        {columns.map((column, index) => (
-          <div
-            key={index}
-            className="flex items-center gap-2 p-2 hover:bg-slate-50 rounded-md cursor-pointer"
-            draggable
-            onDragStart={(e) => {
-              e.stopPropagation();
-              const rect = e.currentTarget.getBoundingClientRect();
-              const yOffset = e.clientY - rect.top;
-              e.dataTransfer.setData(
-                "columnData",
-                JSON.stringify({
-                  tableId: tableName,
-                  columnName: column.name,
-                  yOffset,
-                }),
-              );
-              onColumnDragStart?.(column.name, e);
-            }}
-            onDragOver={(e) => {
-              e.preventDefault();
-              e.currentTarget.classList.add("bg-blue-100");
-            }}
-            onDragLeave={(e) => {
-              e.currentTarget.classList.remove("bg-blue-100");
-            }}
-            onDrop={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              e.currentTarget.classList.remove("bg-blue-100");
-              onColumnDragEnd?.(column.name, e);
-            }}
-          >
-            <div className="flex-1 flex items-center gap-2">
-              <span className="text-sm font-medium">{column.name}</span>
-              <Badge variant="secondary" className="text-xs">
-                {column.type}
-              </Badge>
-              {column.isPrimary && (
-                <Badge variant="default" className="text-xs">
-                  PK
-                </Badge>
-              )}
-            </div>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-6 w-6 opacity-0 group-hover:opacity-100"
-            >
-              <X className="h-3 w-3" />
-            </Button>
+      <Card className="bg-white shadow-lg select-none w-full h-full overflow-auto">
+        {/* Table Header */}
+        <div className="p-4 border-b bg-slate-50 cursor-move flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Grip className="h-4 w-4 text-slate-500" />
+            <Input value={tableName} className="h-7 w-[160px] font-medium" />
           </div>
-        ))}
-      </div>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-7 w-7"
+            onClick={onRemove}
+          >
+            <X className="h-4 w-4" />
+          </Button>
+        </div>
 
-      {/* Add Column Button */}
-      <div className="p-4 border-t">
-        <Button
-          variant="ghost"
-          className="w-full justify-start text-muted-foreground"
-          size="sm"
-        >
-          <Plus className="h-4 w-4 mr-2" />
-          Add Column
-        </Button>
-      </div>
-    </Card>
+        {/* Columns List */}
+        <div className="p-2 space-y-1">
+          {columns.map((column, index) => (
+            <div
+              key={index}
+              className="flex items-center gap-2 p-2 hover:bg-slate-50 rounded-md cursor-pointer"
+              draggable
+              onDragStart={(e) => {
+                e.stopPropagation();
+                const rect = e.currentTarget.getBoundingClientRect();
+                const yOffset = e.clientY - rect.top;
+                e.dataTransfer.setData(
+                  "columnData",
+                  JSON.stringify({
+                    tableId: tableName,
+                    columnName: column.name,
+                    yOffset,
+                  }),
+                );
+                onColumnDragStart?.(column.name, e);
+              }}
+              onDragOver={(e) => {
+                e.preventDefault();
+                e.currentTarget.classList.add("bg-blue-100");
+              }}
+              onDragLeave={(e) => {
+                e.currentTarget.classList.remove("bg-blue-100");
+              }}
+              onDrop={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                e.currentTarget.classList.remove("bg-blue-100");
+                onColumnDragEnd?.(column.name, e);
+              }}
+            >
+              <div className="flex-1 flex items-center gap-2">
+                <span className="text-sm font-medium">{column.name}</span>
+                <Badge variant="secondary" className="text-xs">
+                  {column.type}
+                </Badge>
+                {column.isPrimary && (
+                  <Badge variant="default" className="text-xs">
+                    PK
+                  </Badge>
+                )}
+              </div>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-6 w-6 opacity-0 group-hover:opacity-100"
+              >
+                <X className="h-3 w-3" />
+              </Button>
+            </div>
+          ))}
+        </div>
+
+        {/* Add Column Button */}
+        <div className="p-4 border-t">
+          <Button
+            variant="ghost"
+            className="w-full justify-start text-muted-foreground"
+            size="sm"
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            Add Column
+          </Button>
+        </div>
+      </Card>
+    </ResizableBox>
   );
 };
 
