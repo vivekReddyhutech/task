@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Grip, X, Plus } from "lucide-react";
 import { ResizableBox } from "react-resizable";
 import "react-resizable/css/styles.css";
+import { motion } from "framer-motion";
 
 interface Column {
   name: string;
@@ -43,18 +44,7 @@ const SchemaTable = ({
   height = 200,
 }: SchemaTableProps) => {
   return (
-    <ResizableBox
-      width={width}
-      height={height}
-      minConstraints={[200, 150]}
-      maxConstraints={[500, 800]}
-      onResize={(e, { size }) => {
-        e.stopPropagation();
-        onResize?.(size);
-      }}
-      resizeHandles={["se"]}
-      handle={<div className="react-resizable-handle" />}
-    >
+    <div style={{ width, height }} className="relative">
       <Card className="bg-white shadow-lg select-none w-full h-full overflow-auto">
         {/* Table Header */}
         <div className="p-4 border-b bg-slate-50 cursor-move flex items-center justify-between">
@@ -141,7 +131,38 @@ const SchemaTable = ({
           </Button>
         </div>
       </Card>
-    </ResizableBox>
+      <div
+        className="absolute bottom-0 right-0 w-4 h-4 cursor-se-resize z-50"
+        onMouseDown={(e) => {
+          e.stopPropagation();
+          const startX = e.clientX;
+          const startY = e.clientY;
+          const startWidth = width;
+          const startHeight = height;
+
+          const onMouseMove = (e: MouseEvent) => {
+            const deltaX = e.clientX - startX;
+            const deltaY = e.clientY - startY;
+            const newWidth = Math.max(200, Math.min(500, startWidth + deltaX));
+            const newHeight = Math.max(
+              150,
+              Math.min(800, startHeight + deltaY),
+            );
+            onResize?.({ width: newWidth, height: newHeight });
+          };
+
+          const onMouseUp = () => {
+            document.removeEventListener("mousemove", onMouseMove);
+            document.removeEventListener("mouseup", onMouseUp);
+          };
+
+          document.addEventListener("mousemove", onMouseMove);
+          document.addEventListener("mouseup", onMouseUp);
+        }}
+      >
+        <div className="absolute right-1 bottom-1 w-2 h-2 border-r-2 border-b-2 border-slate-400 hover:border-blue-500" />
+      </div>
+    </div>
   );
 };
 

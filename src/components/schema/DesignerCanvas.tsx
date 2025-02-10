@@ -47,7 +47,12 @@ const DesignerCanvas = ({
   onTableAdd,
   addedTables = [],
 }: DesignerCanvasProps) => {
-  const [tablePositions, setTablePositions] = useState<TablePosition[]>([]);
+  const [tablePositions, setTablePositions] = useState<TablePosition[]>([
+    // Initialize with default sizes
+    { id: "1", x: 100, y: 100, width: 280, height: 200 },
+    { id: "2", x: 400, y: 100, width: 280, height: 200 },
+    { id: "3", x: 700, y: 100, width: 280, height: 200 },
+  ]);
   const [draggedTableId, setDraggedTableId] = useState<string | null>(null);
   const [draggingColumn, setDraggingColumn] = useState<{
     tableId: string;
@@ -136,7 +141,10 @@ const DesignerCanvas = ({
       const y = Math.max(0, e.clientY - rect.top);
 
       if (onTableAdd?.(tableId)) {
-        setTablePositions((prev) => [...prev, { id: tableId, x, y }]);
+        setTablePositions((prev) => [
+          ...prev,
+          { id: tableId, x, y, width: 280, height: 200 },
+        ]);
       }
     }
   };
